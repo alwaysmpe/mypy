@@ -1136,7 +1136,9 @@ class SemanticAnalyzer(
           def f(): ...
           def f(): ...  # Error: 'f' redefined
         """
+        new_decorator = None
         if isinstance(new, Decorator):
+            new_decorator = new
             new = new.func
         if (
             isinstance(previous, (FuncDef, Decorator))
@@ -1144,6 +1146,30 @@ class SemanticAnalyzer(
             and unnamed_function(previous.name)
         ):
             return True
+        if (
+            isinstance(previous, Decorator)
+            and previous.func.is_property
+            and new_decorator
+        ):
+            # possibly property getter/setter/deleter
+            for new_dec in new_decorator.decorators:
+                if not isinstance(new_dec, MemberExpr):
+                    continue
+                expr = new_dec.expr
+                if not (
+                    isinstance(expr, NameExpr)
+                    and expr.name == previous.name
+                    and new_dec.name in {"getter", "setter", "deleter"}
+                ):
+                    continue
+                new_decorator.var.is_property = True
+                new_decorator.var.is_settable_property = (
+                    new_dec.name == "setter"
+                    or previous.var.is_settable_property
+                )
+                previous.var.is_settable_property = new_decorator.var.is_settable_property
+                new.original_def = previous
+                return True
         if isinstance(previous, (FuncDef, Var, Decorator)) and new.is_conditional:
             new.original_def = previous
             return True
@@ -1690,12 +1716,10 @@ class SemanticAnalyzer(
                 removed.append(i)
                 dec.func.is_awaitable_coroutine = True
             elif refers_to_fullname(d, "builtins.staticmethod"):
-                removed.append(i)
                 dec.func.is_static = True
                 dec.var.is_staticmethod = True
                 self.check_decorated_function_is_method("staticmethod", dec)
             elif refers_to_fullname(d, "builtins.classmethod"):
-                removed.append(i)
                 dec.func.is_class = True
                 dec.var.is_classmethod = True
                 self.check_decorated_function_is_method("classmethod", dec)
@@ -1713,7 +1737,8 @@ class SemanticAnalyzer(
                     "types.DynamicClassAttribute",
                 ),
             ):
-                removed.append(i)
+                if not refers_to_fullname(d, "builtins.property"):
+                    removed.append(i)
                 dec.func.is_property = True
                 dec.var.is_property = True
                 if refers_to_fullname(d, "abc.abstractproperty"):

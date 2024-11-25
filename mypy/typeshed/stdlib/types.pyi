@@ -17,8 +17,8 @@ from collections.abc import (
 from importlib.machinery import ModuleSpec
 
 # pytype crashes if types.MappingProxyType inherits from collections.abc.Mapping instead of typing.Mapping
-from typing import Any, ClassVar, Literal, Mapping, TypeVar, final, overload  # noqa: Y022
-from typing_extensions import ParamSpec, Self, TypeVarTuple, deprecated
+from typing import Any, ClassVar, Literal, Mapping, TypeVar, final, overload, Generic  # noqa: Y022
+from typing_extensions import ParamSpec, Self, TypeVarTuple, deprecated, Concatenate
 
 __all__ = [
     "FunctionType",
@@ -62,15 +62,18 @@ if sys.version_info >= (3, 13):
     __all__ += ["CapsuleType"]
 
 # Note, all classes "defined" here require special handling.
+_R_co = TypeVar("_R_co", covariant=True)
+_T = TypeVar("_T")
 
 _T1 = TypeVar("_T1")
 _T2 = TypeVar("_T2")
 _KT = TypeVar("_KT")
 _VT_co = TypeVar("_VT_co", covariant=True)
+_C = TypeVar("_C", bound=Callable[..., Any])
 
 # Make sure this class definition stays roughly in line with `builtins.function`
 @final
-class FunctionType:
+class FunctionType(Generic[_C]):
     @property
     def __closure__(self) -> tuple[CellType, ...] | None: ...
     __code__: CodeType
@@ -97,11 +100,11 @@ class FunctionType:
         argdefs: tuple[object, ...] | None = ...,
         closure: tuple[CellType, ...] | None = ...,
     ) -> Self: ...
-    def __call__(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __call__(__self: FunctionType[Callable[_P, _R_co]], *args: _P.args, **kwargs: _P.kwargs) -> _R_co: ...
     @overload
-    def __get__(self, instance: None, owner: type, /) -> FunctionType: ...
+    def __get__(self, instance: None, owner: type, /) -> Self: ...
     @overload
-    def __get__(self, instance: object, owner: type | None = None, /) -> MethodType: ...
+    def __get__(self: FunctionType[Callable[Concatenate[_T, _P], _R_co]], instance: _T, owner: type | None = None, /) -> MethodType[_P, _R_co, FunctionType[_C]]: ...
 
 LambdaType = FunctionType
 
@@ -426,8 +429,11 @@ class CoroutineType(Coroutine[_YieldT_co, _SendT_contra, _ReturnT_co]):
     if sys.version_info >= (3, 13):
         def __class_getitem__(cls, item: Any, /) -> Any: ...
 
+
+_W = TypeVar("_W")
+
 @final
-class MethodType:
+class MethodType(Generic[_P, _R_co, _W]):
     @property
     def __closure__(self) -> tuple[CellType, ...] | None: ...  # inherited from the added function
     @property
@@ -435,7 +441,7 @@ class MethodType:
     @property
     def __defaults__(self) -> tuple[Any, ...] | None: ...  # inherited from the added function
     @property
-    def __func__(self) -> Callable[..., Any]: ...
+    def __func__(self) -> _W: ...
     @property
     def __self__(self) -> object: ...
     @property
@@ -443,9 +449,10 @@ class MethodType:
     @property
     def __qualname__(self) -> str: ...  # inherited from the added function
     def __new__(cls, func: Callable[..., Any], obj: object, /) -> Self: ...
-    def __call__(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __call__(self, *args: _P.args, **kwargs: _P.kwargs) -> _R_co: ...
     def __eq__(self, value: object, /) -> bool: ...
     def __hash__(self) -> int: ...
+    def __get__(self, instance: object, owner: type[Any] | None = None,/) -> Self:...
 
 @final
 class BuiltinFunctionType:

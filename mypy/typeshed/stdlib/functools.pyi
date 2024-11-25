@@ -3,7 +3,7 @@ import types
 from _typeshed import SupportsAllComparisons, SupportsItems
 from collections.abc import Callable, Hashable, Iterable, Sequence, Sized
 from typing import Any, Generic, Literal, NamedTuple, TypedDict, TypeVar, final, overload
-from typing_extensions import ParamSpec, Self, TypeAlias
+from typing_extensions import ParamSpec, Self, TypeAlias, Concatenate
 
 if sys.version_info >= (3, 9):
     from types import GenericAlias
@@ -51,22 +51,35 @@ if sys.version_info >= (3, 9):
         maxsize: int
         typed: bool
 
+_C = TypeVar("_C", bound=Callable[..., Any])
+_P = ParamSpec("_P")
+_R_co = TypeVar("_R_co", covariant=True)
+_Cache: TypeAlias = _lru_cache_wrapper[Callable[_P, _R_co]]
+_MCache: TypeAlias = _lru_cache_wrapper[Callable[Concatenate[_T, _P], _R_co]]
+
 @final
-class _lru_cache_wrapper(Generic[_T]):
-    __wrapped__: Callable[..., _T]
-    def __call__(self, *args: Hashable, **kwargs: Hashable) -> _T: ...
+class _lru_cache_wrapper(Generic[_C]):
+    __wrapped__: _C
+    def __call__(self: _Cache[_P, _R_co], *args: _P.args, **kwargs: _P.kwargs) -> _R_co: ...
     def cache_info(self) -> _CacheInfo: ...
     def cache_clear(self) -> None: ...
     if sys.version_info >= (3, 9):
         def cache_parameters(self) -> _CacheParameters: ...
 
-    def __copy__(self) -> _lru_cache_wrapper[_T]: ...
-    def __deepcopy__(self, memo: Any, /) -> _lru_cache_wrapper[_T]: ...
+    def __copy__(self) -> Self: ...
+    def __deepcopy__(self, memo: Any, /) -> Self: ...
+
+    @overload
+    def __get__(self, instance: None, owner: type[Any], /) -> Self: ...
+    @overload
+    def __get__(self: _MCache[_T, _P, _R_co], instance: _T, owner: type[_T] | None = None, /) -> types.MethodType[_P, _R_co, _lru_cache_wrapper[_C]]: ...
+
+
 
 @overload
-def lru_cache(maxsize: int | None = 128, typed: bool = False) -> Callable[[Callable[..., _T]], _lru_cache_wrapper[_T]]: ...
+def lru_cache(maxsize: int | None = 128, typed: bool = False) -> Callable[[_C], _lru_cache_wrapper[_C]]: ...
 @overload
-def lru_cache(maxsize: Callable[..., _T], typed: bool = False) -> _lru_cache_wrapper[_T]: ...
+def lru_cache(maxsize: _C, typed: bool = False) -> _lru_cache_wrapper[_C]: ...
 
 if sys.version_info >= (3, 12):
     WRAPPER_ASSIGNMENTS: tuple[
@@ -199,7 +212,7 @@ class cached_property(Generic[_T_co]):
         def __class_getitem__(cls, item: Any, /) -> GenericAlias: ...
 
 if sys.version_info >= (3, 9):
-    def cache(user_function: Callable[..., _T], /) -> _lru_cache_wrapper[_T]: ...
+    def cache(user_function: _C, /) -> _lru_cache_wrapper[_C]: ...
 
 def _make_key(
     args: tuple[Hashable, ...],
