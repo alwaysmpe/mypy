@@ -947,7 +947,7 @@ class SemanticAnalyzer(
                 assert isinstance(defn.type, CallableType)
                 if isinstance(get_proper_type(defn.type.ret_type), AnyType):
                     defn.type = defn.type.copy_modified(ret_type=NoneType())
-            self.prepare_method_signature(defn, self.type, has_self_type)
+            has_self_type = self.prepare_method_signature(defn, self.type, has_self_type)
 
         # Analyze function signature
         fullname = self.function_fullname(defn.fullname)
@@ -1063,7 +1063,7 @@ class SemanticAnalyzer(
         new_arg_types = typ.arg_types[:-1] + [last_type]
         return typ.copy_modified(arg_types=new_arg_types, unpack_kwargs=True)
 
-    def prepare_method_signature(self, func: FuncDef, info: TypeInfo, has_self_type: bool) -> None:
+    def prepare_method_signature(self, func: FuncDef, info: TypeInfo, has_self_type: bool) -> bool:
         """Check basic signature validity and tweak annotation of self/cls argument."""
         # Only non-static methods are special, as well as __new__.
         functype = func.type
@@ -1082,10 +1082,14 @@ class SemanticAnalyzer(
                 if isinstance(self_type, AnyType):
                     if has_self_type:
                         assert self.type is not None and self.type.self_type is not None
-                        leading_type: Type = self.type.self_type
                     else:
                         func.is_trivial_self = True
-                        leading_type = fill_typevars(info)
+                        assert self.type is not None
+                        if self.type.self_type is None:
+                            self.setup_self_type()
+                    leading_type: Type = self.type.self_type
+                    has_self_type = True
+
                     if func.is_class or func.name == "__new__":
                         leading_type = self.class_type(leading_type)
                     func.type = replace_implicit_first_type(functype, leading_type)
@@ -1107,6 +1111,8 @@ class SemanticAnalyzer(
                             )
         elif has_self_type:
             self.fail("Static methods cannot use Self type", func)
+
+        return has_self_type
 
     def is_expected_self_type(self, typ: Type, is_classmethod: bool) -> bool:
         """Does this (analyzed or not) type represent the expected Self type for a method?"""
