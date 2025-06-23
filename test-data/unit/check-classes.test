@@ -96,8 +96,8 @@ class A:
         self.f()
 class B: pass
 [out]
-main:4: error: Incompatible types in assignment (expression has type "A", variable has type "B")
-main:5: error: "A" has no attribute "g"
+main:4: error: Incompatible types in assignment (expression has type "Self", variable has type "B")
+main:5: error: "Self" has no attribute "g"
 
 [case testAssignToMethodViaInstance]
 import typing
@@ -120,7 +120,7 @@ class Derived(Base):
                                 # N:      Superclass: \
                                 # N:          None \
                                 # N:      Subclass: \
-                                # N:          def __hash__(self) -> int
+                                # N:          def [Self: Derived] __hash__(self) -> int
         pass
 
 # Correct:
@@ -165,7 +165,7 @@ class Derived(Base):
                                     # N:      Superclass: \
                                     # N:          list[Any] \
                                     # N:      Subclass: \
-                                    # N:          def partial_type(self) -> int
+                                    # N:          def [Self: Derived] partial_type(self) -> int
         ...
 
 

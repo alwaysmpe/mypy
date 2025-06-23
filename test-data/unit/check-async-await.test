@@ -961,8 +961,8 @@ async def bar(x: Union[A, B]) -> None:
 import m
 
 async def func(l: m.L) -> None:
-    reveal_type(l.get_iterator)  # N: Revealed type is "def () -> typing.AsyncIterator[builtins.str]"
-    reveal_type(l.get_iterator2)  # N: Revealed type is "def () -> typing.AsyncIterator[builtins.str]"
+    reveal_type(l.get_iterator)  # N: Revealed type is "def [Self <: m.L] () -> typing.AsyncIterator[builtins.str]"
+    reveal_type(l.get_iterator2)  # N: Revealed type is "def [Self <: m.L] () -> typing.AsyncIterator[builtins.str]"
     async for i in l.get_iterator():
         reveal_type(i)  # N: Revealed type is "builtins.str"
 

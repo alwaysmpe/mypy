@@ -2250,6 +2250,7 @@ x: B[int]
 y: B[B[Any]]
 reveal_type(y.x)
 [out]
+tmp/b.py:5: error: Cannot resolve Self upper bound (possible cyclic definition)
 tmp/b.py:9: error: Type argument "int" of "B" must be a subtype of "B[Any]"
 tmp/b.py:11: note: Revealed type is "b.B[Any]"
 tmp/a.py:5: error: Cannot redefine "T" as a type variable

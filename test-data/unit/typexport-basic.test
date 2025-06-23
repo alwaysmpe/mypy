@@ -79,7 +79,7 @@ class A:
 class B: pass
 [out]
 MemberExpr(4) : A
-MemberExpr(5) : def () -> B
+MemberExpr(5) : def [Self <: A] () -> B
 CallExpr(6) : B
 MemberExpr(6) : def () -> B
 
@@ -442,7 +442,7 @@ class B(A[C]):
 CallExpr(8) : None
 MemberExpr(8) : def (a: C)
 NameExpr(8) : C
-NameExpr(8) : B
+NameExpr(8) : Self`0
 
 [case testInheritedMethodReferenceWithGenericSubclass]
 from typing import TypeVar, Generic
@@ -458,7 +458,7 @@ class B(A[C, T], Generic[T]):
 CallExpr(9) : None
 MemberExpr(9) : def (a: C)
 NameExpr(9) : C
-NameExpr(9) : B[T`1]
+NameExpr(9) : Self`0
 
 [case testExternalReferenceWithGenericInheritance]
 from typing import TypeVar, Generic
@@ -929,7 +929,7 @@ class A:
 A.f
 [builtins fixtures/tuple.pyi]
 [out]
-MemberExpr(10) : Overload(def (self: A), def (self: A, builtins.object))
+MemberExpr(10) : Overload(def [Self <: A] (self: Self`17), def [Self <: A] (self: Self`18, builtins.object))
 
 [case testOverloadedUnboundMethodWithImplicitSig]
 ## MemberExpr
@@ -956,7 +956,7 @@ class B(A):
     pass
 B.f
 [out]
-MemberExpr(8) : def (self: A)
+MemberExpr(8) : def [Self <: A] (self: Self`7)
 
 [case testUnboundGenericMethod]
 ## MemberExpr
@@ -980,7 +980,7 @@ A.f
 a_b = A() # type: A[B]
 A.f(a_b, B())
 [out]
-MemberExpr(7) : def [t] (self: A[t`1], x: t`1)
+MemberExpr(7) : def [t, Self <: A[t`1]] (self: Self`7, x: t`1)
 MemberExpr(9) : def (self: A[B], x: B)
 
 [case testUnboundOverloadedMethodOfGenericClass]
@@ -1176,7 +1176,7 @@ class A:
         self.x = (
                   A())
 [out]
-NameExpr(5) : A
+NameExpr(5) : Self`0
 NameExpr(6) : def () -> A
 
 [case testListMultiplicationInContext]

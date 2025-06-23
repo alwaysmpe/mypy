@@ -164,7 +164,7 @@ class B(A):
         i = 0
         s = ''
         if int():
-            self = x
+            self = x  # E: Incompatible types in assignment (expression has type "B", variable has type "Self")
             i, s = x
             i, s = x.a, x.b
             i, s = x.a, x.a  # E: Incompatible types in assignment (expression has type "int", \
@@ -528,9 +528,9 @@ class Base(NamedTuple):
         reveal_type(self)  # N: Revealed type is "T`-1"
         return self
     def good_override(self) -> int:
-        reveal_type(self)  # N: Revealed type is "tuple[builtins.int, fallback=__main__.Base]"
+        reveal_type(self)  # N: Revealed type is "Self`0"
         reveal_type(self[0])  # N: Revealed type is "builtins.int"
-        self[0] = 3  # E: Unsupported target for indexed assignment ("Base")
+        self[0] = 3  # E: Unsupported target for indexed assignment ("Self")
         reveal_type(self.x)  # N: Revealed type is "builtins.int"
         self.x = 3  # E: Property "x" defined in "Base" is read-only
         self[1]  # E: Tuple index out of range
@@ -545,9 +545,9 @@ class Base(NamedTuple):
 
 class Child(Base):
     def new_method(self) -> int:
-        reveal_type(self)  # N: Revealed type is "tuple[builtins.int, fallback=__main__.Child]"
+        reveal_type(self)  # N: Revealed type is "Self`0"
         reveal_type(self[0])  # N: Revealed type is "builtins.int"
-        self[0] = 3  # E: Unsupported target for indexed assignment ("Child")
+        self[0] = 3  # E: Unsupported target for indexed assignment ("Self")
         reveal_type(self.x)  # N: Revealed type is "builtins.int"
         self.x = 3  # E: Property "x" defined in "Base" is read-only
         self[1]  # E: Tuple index out of range
@@ -635,7 +635,7 @@ class HasClassMethod(NamedTuple):
 
     @classmethod
     def new(cls, f: str) -> 'HasClassMethod':
-        reveal_type(cls)  # N: Revealed type is "type[tuple[builtins.str, fallback=__main__.HasClassMethod]]"
+        reveal_type(cls)  # N: Revealed type is "type[Self`0]"
         reveal_type(HasClassMethod)  # N: Revealed type is "def (x: builtins.str) -> tuple[builtins.str, fallback=__main__.HasClassMethod]"
         return cls(x=f)
 
@@ -661,7 +661,7 @@ class HasStaticMethod(NamedTuple):
 
     @property
     def size(self) -> int:
-        reveal_type(self)  # N: Revealed type is "tuple[builtins.str, fallback=__main__.HasStaticMethod]"
+        reveal_type(self)  # N: Revealed type is "Self`0"
         return 4
 
 [builtins fixtures/property.pyi]

@@ -179,7 +179,7 @@ class A(NamedTuple):
 
 T = TypeVar('T', bound=A)
 def f(x: Type[T]) -> None:
-    reveal_type(x.foo)  # N: Revealed type is "def ()"
+    reveal_type(x.foo)  # N: Revealed type is "def [Self <: tuple[(), fallback=__main__.A]] ()"
     x.foo()
 [builtins fixtures/classmethod.pyi]
 

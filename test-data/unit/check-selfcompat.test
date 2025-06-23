@@ -1,0 +1,67 @@
+[case testDifferentImplicitSelfAreIncompatible]
+
+class A:
+    def foo(self) -> None:
+        pass
+class B:
+    def bar(self) -> None:
+        A.foo(self) # E: Value of type variable "Self" of "foo" of "A" cannot be "Self"
+
+[case testDifferentExplicitSelfAreIncompatible]
+from typing import Self
+class A:
+    def foo(self: Self) -> None:
+        pass
+class B:
+    def bar(self: Self) -> None:
+        A.foo(self) # E: Value of type variable "Self" of "foo" of "A" cannot be "Self"
+
+[case testDifferentImplicitSelfNotCompatibleWithExplicitSelf]
+from typing import Self
+class A:
+    def foo(self: Self) -> None:
+        pass
+class B:
+    def bar(self: Self) -> None:
+        A.foo(self) # E: Value of type variable "Self" of "foo" of "A" cannot be "Self"
+
+[case testDifferentExplicitSelfNotCompatibleWithImplicitSelf]
+from typing import Self
+class A:
+    def foo(self: Self) -> None:
+        pass
+class B:
+    def bar(self: Self) -> None:
+        A.foo(self) # E: Value of type variable "Self" of "foo" of "A" cannot be "Self"
+
+[case testSameImplicitSelfAreCompatible]
+
+class A:
+    def foo(self) -> None:
+        pass
+    def bar(self) -> None:
+        A.foo(self)
+
+[case testSameExplicitSelfAreCompatible]
+from typing import Self
+class A:
+    def foo(self: Self) -> None:
+        pass
+    def bar(self: Self) -> None:
+        A.foo(self)
+
+[case testSameImplicitSelfCompatibleWithExplicitSelf]
+from typing import Self
+class A:
+    def foo(self: Self) -> None:
+        pass
+    def bar(self) -> None:
+        A.foo(self)
+
+[case testSameExplicitSelfCompatibleWithImplicitSelf]
+from typing import Self
+class A:
+    def foo(self) -> None:
+        pass
+    def bar(self: Self) -> None:
+        A.foo(self)

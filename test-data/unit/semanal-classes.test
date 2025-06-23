@@ -472,7 +472,7 @@ MypyFile:1(
         Args(
           Var(cls)
           Var(z))
-        def (cls: type[__main__.A], z: builtins.int) -> builtins.str
+        def [Self <: __main__.A] (cls: type[Self`0], z: builtins.int) -> builtins.str
         Class
         Block:3(
           PassStmt:3())))))
@@ -492,7 +492,7 @@ MypyFile:1(
         f
         Args(
           Var(cls))
-        def (cls: type[__main__.A]) -> builtins.str
+        def [Self <: __main__.A] (cls: type[Self`0]) -> builtins.str
         Class
         Block:3(
           PassStmt:3())))))
@@ -514,7 +514,7 @@ MypyFile:1(
         f
         Args(
           Var(self))
-        def (self: __main__.A) -> builtins.str
+        def [Self <: __main__.A] (self: Self`0) -> builtins.str
         Property
         Block:4(
           PassStmt:4())))))
@@ -553,7 +553,7 @@ MypyFile:1(
         default(
           Var(x)
           NameExpr(X [__main__.A.X])))
-      def (self: __main__.A, x: builtins.int =)
+      def [Self <: __main__.A] (self: Self`0, x: builtins.int =)
       Block:4(
         PassStmt:4()))))
 

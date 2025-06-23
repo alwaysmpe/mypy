@@ -608,9 +608,9 @@ class C:
 
     bar2 = foo2
 
-reveal_type(C.bar)  # N: Revealed type is "def () -> builtins.int"
+reveal_type(C.bar)  # E: Access to generic instance variables via class is ambiguous # N: Revealed type is "def [Self <: __main__.C] () -> builtins.int"
 reveal_type(C().bar)  # N: Revealed type is "def () -> builtins.int"
-reveal_type(C.bar2)  # N: Revealed type is "Overload(def (x: builtins.int) -> builtins.int, def (x: builtins.str) -> builtins.str)"
+reveal_type(C.bar2)  # E: Access to generic instance variables via class is ambiguous # N: Revealed type is "Overload(def [Self <: __main__.C] (x: builtins.int) -> builtins.int, def [Self <: __main__.C] (x: builtins.str) -> builtins.str)"
 reveal_type(C().bar2)  # N: Revealed type is "Overload(def (x: builtins.int) -> builtins.int, def (x: builtins.str) -> builtins.str)"
 [builtins fixtures/classmethod.pyi]
 
